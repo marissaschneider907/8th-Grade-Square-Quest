@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Perfect Square Quest</title>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--ink:#172033;--muted:#667085;--accent:#4f46e5;--good:#16803c;--bad:#b42318;--warn:#b54708;--line:#d0d5dd}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:#172033;color:#fff;padding:18px 20px}header h1{margin:0;font-size:clamp(1.4rem,4vw,2rem)}header p{margin:.35rem 0 0;color:#d0d5dd}
+main{max-width:1100px;margin:auto;padding:18px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:16px}
+.grid{display:grid;gap:12px}.g2{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+button,select,input{font:inherit}button{min-height:46px;border:0;border-radius:12px;padding:10px 15px;font-weight:700;cursor:pointer}
+.primary{background:var(--accent);color:#fff}.secondary{background:#eef2ff;color:#3730a3}.danger{background:#fee4e2;color:#912018}
+.choice{width:100%;background:#fff;border:2px solid var(--line);text-align:left;color:var(--ink)}.choice.selected{border-color:var(--accent);background:#eef2ff}
+select,input{width:100%;min-height:46px;border:1px solid var(--line);border-radius:10px;padding:8px;background:#fff}.hidden{display:none!important}
+.big{font-size:clamp(1.45rem,5vw,2.5rem);font-weight:800}.muted{color:var(--muted)}.score{font-size:1.3rem;font-weight:800}
+.pill{display:inline-block;padding:5px 9px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:.85rem;font-weight:700}
+.status{padding:10px;border-radius:10px;background:#f2f4f7}.ok{background:#ecfdf3;color:#166534}.help{background:#fffaeb;color:#92400e}.wrong{background:#fef3f2;color:#912018}
+.roster{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:8px}.student{border:1px solid var(--line);border-radius:12px;padding:10px}.student strong{display:block}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#98a2b3;margin-right:6px}.done{background:var(--good)}.helpdot{background:#f79009}.baddot{background:var(--bad)}
+.bar{height:12px;background:#eaecf0;border-radius:999px;overflow:hidden}.bar>div{height:100%;background:var(--accent);width:0;transition:width .25s}
+table{width:100%;border-collapse:collapse}th,td{padding:8px;border-bottom:1px solid var(--line);text-align:left;font-size:.9rem}.scroll{overflow:auto}
+.note{border-left:4px solid var(--accent);padding:10px 12px;background:#eef2ff;border-radius:8px}
+@media(max-width:520px){main{padding:10px}.card{padding:14px}}
+</style>
+</head>
+<body>
+<header><h1>Perfect Square Quest</h1><p>Day 1 • 8th Grade • Whole-Class Challenge</p></header>
+<main>
+<section id="setup" class="card">
+<h2>Join the Quest</h2>
+<div class="grid g2">
+<div><label for="mode">Choose mode</label><select id="mode"><option value="student">Student</option><option value="teacher">Teacher Dashboard</option></select></div>
+<div id="studentPick"><label for="student">Your name</label><select id="student"><option value="">Choose your name…</option><option value="Logan B.">Logan B.</option><option value="Stanton E.">Stanton E.</option><option value="Kayla G.">Kayla G.</option><option value="Alexander H.">Alexander H.</option><option value="Andi N.">Andi N.</option><option value="Curtis N.">Curtis N.</option><option value="Jed N.">Jed N.</option><option value="Jedlyn N.">Jedlyn N.</option><option value="Ruby N.">Ruby N.</option><option value="Eric P.">Eric P.</option><option value="Luke P.">Luke P.</option><option value="Riley P.">Riley P.</option><option value="Brianna S.">Brianna S.</option><option value="Noah W.">Noah W.</option></select></div>
+<div id="teacherCodeWrap" class="hidden"><label for="teacherCode">Teacher PIN</label><input id="teacherCode" type="password" inputmode="numeric" placeholder="Teacher PIN"></div>
+</div>
+<p class="muted">Everyone answers each question. The teacher advances the whole class together.</p>
+<button id="join" class="primary">Enter Game</button><p id="setupMsg" aria-live="polite"></p>
+</section>
+
+<section id="studentView" class="hidden">
+<div class="card">
+<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><span class="pill" id="qnumS"></span><div class="muted" id="skillS"></div></div><div class="score">Points: <span id="scoreS">0</span></div></div>
+<div class="bar"><div id="progS"></div></div><p class="muted"><span id="countS">0</span>/14 classmates responded</p>
+<p class="big" id="promptS"></p><div id="choicesS" class="grid g2"></div>
+<button id="needHelp" class="secondary" style="margin-top:12px">🙋 I need help</button>
+<div id="feedbackS" class="status hidden" aria-live="polite"></div>
+</div>
+<div class="card"><strong>Game rule:</strong> Once you answer, your response locks. Stay on this screen until your teacher moves everyone to the next question.</div>
+</section>
+
+<section id="teacherView" class="hidden">
+<div class="card">
+<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><span class="pill" id="qnumT"></span><div class="muted" id="skillT"></div></div><div class="score">Class Points: <span id="classScore">0</span></div></div>
+<p class="big" id="promptT"></p><div class="bar"><div id="progT"></div></div>
+<p><strong id="countT">0</strong>/14 responded • <strong id="correctT">0</strong> correct • <strong id="helpT">0</strong> asked for help</p>
+<div id="teacherChoices" class="grid g2"></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button id="advance" class="primary" disabled>Waiting for everyone…</button><button id="resetQ" class="secondary">Reset Current Question</button></div>
+</div>
+<div class="card"><h2>Live Roster</h2><div id="roster" class="roster"></div></div>
+<div class="card"><h2>Who may need help?</h2><div id="helpList" class="note">No responses yet.</div></div>
+<div class="card"><h2>Response Details</h2><div class="scroll"><table><thead><tr><th>Student</th><th>Answer</th><th>Result</th><th>Points</th><th>Help</th></tr></thead><tbody id="results"></tbody></table></div></div>
+<div class="card"><button id="restart" class="danger">Restart Whole Game</button></div>
+</section>
+
+<section id="finish" class="card hidden"><h2>🏆 Quest Complete!</h2><p class="big">Great work, 8th Grade!</p><p id="finishText"></p></section>
+</main>
+
+<script type="module">
+const firebaseConfig={"apiKey": "AIzaSyD02oJPI86I6G3JyYJfwnV2i1ut-acfYQk", "authDomain": "akiachak-math-games.firebaseapp.com", "databaseURL": "https://akiachak-math-games-default-rtdb.firebaseio.com/", "projectId": "akiachak-math-games", "storageBucket": "akiachak-math-games.firebasestorage.app", "messagingSenderId": "346917136191", "appId": "1:346917136191:web:89b1b942f1b6fbd8b1558a"};
+const ROSTER=["Logan B.", "Stanton E.", "Kayla G.", "Alexander H.", "Andi N.", "Curtis N.", "Jed N.", "Jedlyn N.", "Ruby N.", "Eric P.", "Luke P.", "Riley P.", "Brianna S.", "Noah W."];
+const QUESTIONS=[{"prompt": "−7 + 12 = ?", "choices": ["−19", "−5", "5", "19"], "answer": 2, "explain": "Start at −7 and move 12 units right. You land on 5.", "skill": "Integer operations"}, {"prompt": "6 − (−4) = ?", "choices": ["2", "10", "−10", "−2"], "answer": 1, "explain": "Subtracting a negative is adding: 6 + 4 = 10.", "skill": "Integer operations"}, {"prompt": "(−6)(−4) = ?", "choices": ["−24", "24", "−10", "10"], "answer": 1, "explain": "A negative times a negative is positive: 6 × 4 = 24.", "skill": "Integer operations"}, {"prompt": "3² = ?", "choices": ["6", "9", "3", "8"], "answer": 1, "explain": "3² means 3 × 3 = 9.", "skill": "Understanding exponents"}, {"prompt": "(−3)² = ?", "choices": ["−9", "6", "9", "−6"], "answer": 2, "explain": "(−3)² = (−3)(−3) = 9.", "skill": "Understanding exponents"}, {"prompt": "2³ · 2⁴ = ?", "choices": ["2⁷", "4⁷", "2¹²", "4¹²"], "answer": 0, "explain": "Same base: add exponents. 3 + 4 = 7, so 2⁷.", "skill": "Exponent operations"}, {"prompt": "Which is a perfect square?", "choices": ["18", "24", "36", "40"], "answer": 2, "explain": "36 = 6 × 6 = 6².", "skill": "Perfect squares"}, {"prompt": "5² = ?", "choices": ["10", "20", "25", "15"], "answer": 2, "explain": "5² means 5 × 5 = 25.", "skill": "Perfect squares"}, {"prompt": "A square has side length 7 units. What is its area?", "choices": ["14", "28", "49", "21"], "answer": 2, "explain": "Area = side × side: 7 × 7 = 49.", "skill": "Square models"}, {"prompt": "√49 = ?", "choices": ["6", "7", "14", "49"], "answer": 1, "explain": "7 × 7 = 49, so √49 = 7.", "skill": "Square roots"}, {"prompt": "Which statement is true?", "choices": ["8² = 16", "8² = 64", "√64 = 4", "√64 = 16"], "answer": 1, "explain": "8² = 8 × 8 = 64. Also, √64 = 8.", "skill": "Squares and roots"}, {"prompt": "Which number is NOT a perfect square?", "choices": ["25", "49", "72", "81"], "answer": 2, "explain": "25=5², 49=7², 81=9². 72 is not a perfect square.", "skill": "Perfect squares"}, {"prompt": "A square design has 81 equal positions. How many positions are along one side?", "choices": ["8", "9", "18", "27"], "answer": 1, "explain": "9 × 9 = 81, so each side has 9 positions.", "skill": "Square roots in context"}, {"prompt": "BOSS ROUND: 10² = ___ and √100 = ___", "choices": ["20 and 50", "100 and 10", "100 and 20", "10 and 100"], "answer": 1, "explain": "10² = 100, and √100 = 10.", "skill": "Squares and roots"}];
+const PIN="173";
+const $=id=>document.getElementById(id);
+let db,F,me="",mode="",state={q:0,classScore:0,responses:{},scores:{}},current=0,myAnswered=false;
+
+$("mode").addEventListener("change",()=>{const t=$("mode").value==="teacher";$("studentPick").classList.toggle("hidden",t);$("teacherCodeWrap").classList.toggle("hidden",!t)});
+
+async function initFirebase(){
+ const appmod=await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js");
+ const dbmod=await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js");
+ const app=appmod.initializeApp(firebaseConfig);db=dbmod.getDatabase(app);
+ F={ref:dbmod.ref,set:dbmod.set,onValue:dbmod.onValue,update:dbmod.update,get:dbmod.get};
+}
+$("join").addEventListener("click",async()=>{
+ mode=$("mode").value;me=$("student").value;
+ if(mode==="student"&&!me){$("setupMsg").textContent="Choose your name first.";return}
+ if(mode==="teacher"&&$("teacherCode").value!==PIN){$("setupMsg").textContent="Teacher PIN is incorrect.";return}
+ $("join").disabled=true;$("setupMsg").textContent="Connecting…";
+ try{await initFirebase();await enter()}catch(e){$("setupMsg").textContent="Could not connect. Check Firebase Realtime Database and its rules. "+e.message;$("join").disabled=false}
+});
+async function enter(){
+ $("setup").classList.add("hidden");(mode==="teacher"?$("teacherView"):$("studentView")).classList.remove("hidden");
+ const r=F.ref(db,"perfectSquareQuest/game"),snap=await F.get(r);
+ if(!snap.exists()&&mode==="teacher")await F.set(r,{q:0,classScore:0,responses:{},scores:{}});
+ F.onValue(r,s=>{state=s.val()||{q:0,classScore:0,responses:{},scores:{}};current=state.q||0;render()});
+}
+function render(){
+ if(current>=QUESTIONS.length){$("studentView").classList.add("hidden");$("teacherView").classList.add("hidden");$("finish").classList.remove("hidden");$("finishText").textContent=`Class total: ${state.classScore||0} points.`;return}
+ const q=QUESTIONS[current],responses=state.responses||{},vals=Object.values(responses),n=vals.length;
+ if(mode==="student"){
+  $("qnumS").textContent=`Question ${current+1} of ${QUESTIONS.length}`;$("skillS").textContent=q.skill;$("promptS").textContent=q.prompt;$("scoreS").textContent=(state.scores&&state.scores[me])||0;$("countS").textContent=n;$("progS").style.width=`${n/ROSTER.length*100}%`;
+  const mine=responses[me];myAnswered=!!mine;$("choicesS").innerHTML="";
+  q.choices.forEach((c,i)=>{const b=document.createElement("button");b.className="choice";b.textContent=`${String.fromCharCode(65+i)}. ${c}`;b.disabled=myAnswered;if(mine&&mine.choice===i)b.classList.add("selected");b.addEventListener("click",()=>answer(i,false));$("choicesS").appendChild(b)});
+  $("needHelp").disabled=myAnswered;
+  if(mine){$("feedbackS").classList.remove("hidden");$("feedbackS").className="status "+(mine.help?"help":mine.correct?"ok":"wrong");$("feedbackS").textContent=mine.help?"Your teacher can see that you asked for help.":mine.correct?`Correct! +100 points. ${q.explain}`:`Answer recorded. Your teacher can see that you may need a check. ${q.explain}`}
+  else $("feedbackS").classList.add("hidden");
+ }else{
+  $("qnumT").textContent=`Question ${current+1} of ${QUESTIONS.length}`;$("skillT").textContent=q.skill;$("promptT").textContent=q.prompt;$("classScore").textContent=state.classScore||0;$("countT").textContent=n;$("correctT").textContent=vals.filter(x=>x.correct).length;$("helpT").textContent=vals.filter(x=>x.help).length;$("progT").style.width=`${n/ROSTER.length*100}%`;
+  $("teacherChoices").innerHTML=q.choices.map((c,i)=>`<div class="status ${i===q.answer?"ok":""}">${String.fromCharCode(65+i)}. ${c} ${i===q.answer?"✓":""}</div>`).join("");
+  $("advance").disabled=n<ROSTER.length;$("advance").textContent=n<ROSTER.length?`Waiting for ${ROSTER.length-n} student${ROSTER.length-n===1?"":"s"}…`:"Everyone answered — Next Question";
+  $("roster").innerHTML=ROSTER.map(s=>{const r=responses[s];const cls=!r?"":r.help?"helpdot":r.correct?"done":"baddot";return `<div class="student"><strong><span class="dot ${cls}"></span>${s}</strong><span class="muted">${!r?"Waiting…":r.help?"Asked for help":r.correct?"Correct":"Needs a check"}</span></div>`}).join("");
+  const needs=ROSTER.filter(s=>responses[s]&&(responses[s].help||!responses[s].correct));$("helpList").textContent=needs.length?needs.map(s=>`${s} — ${responses[s].help?"asked for help":"incorrect response"}`).join(" • "):n?"No one is currently flagged.":"No responses yet.";
+  $("results").innerHTML=ROSTER.map(s=>{const r=responses[s];return `<tr><td>${s}</td><td>${r&&r.choice>=0?q.choices[r.choice]:"—"}</td><td>${r?(r.help?"Help":r.correct?"✓ Correct":"✗ Check"):"—"}</td><td>${r?r.points:0}</td><td>${r&&r.help?"Yes":"—"}</td></tr>`}).join("");
+ }
+}
+async function answer(choice,help){
+ if(myAnswered)return;myAnswered=true;
+ const q=QUESTIONS[current],correct=!help&&choice===q.answer,points=correct?100:0;
+ const responseRef=F.ref(db,`perfectSquareQuest/game/responses/${me}`);
+ await F.set(responseRef,{choice,correct,points,help});
+ if(points){const scoreRef=F.ref(db,`perfectSquareQuest/game/scores/${me}`);const snap=await F.get(scoreRef);const old=snap.exists()?Number(snap.val())||0:0;await F.set(scoreRef,old+points);const csRef=F.ref(db,"perfectSquareQuest/game/classScore");const cs=await F.get(csRef);await F.set(csRef,(Number(cs.val())||0)+points)}
+}
+$("needHelp").addEventListener("click",()=>answer(-1,true));
+$("advance").addEventListener("click",async()=>{if(Object.keys(state.responses||{}).length<ROSTER.length)return;await F.update(F.ref(db,"perfectSquareQuest/game"),{q:current+1,responses:{}})});
+$("resetQ").addEventListener("click",()=>F.set(F.ref(db,"perfectSquareQuest/game/responses"),{}));
+$("restart").addEventListener("click",async()=>{if(confirm("Restart the whole game and clear all scores?"))await F.set(F.ref(db,"perfectSquareQuest/game"),{q:0,classScore:0,responses:{},scores:{}})});
+</script>
+</body></html>
